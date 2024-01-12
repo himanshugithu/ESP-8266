@@ -10,17 +10,20 @@ const char* password = "11111111"; //--> Your wifi password.
 //----------------------------------------Host & httpsPort
 const char* host = "script.google.com";
 const int httpsPort = 443;
+#define pushButton D8
 //----------------------------------------
  
 WiFiClientSecure client; //--> Create a WiFiClientSecure object.
  
-String GAS_ID = "AKfycbyHyNrqt44cHPsrncU5doKCupRV-ALXKIqQ9MaikU1WEv7BoQJDDi_hjyblqBHeUf-U7A"; //--> spreadsheet script ID
+String GAS_ID = "AKfycbwdXRW0xf1ZTwLK0yZqFenbyv2DxCvr1PSNTjet38Hzb_N_W0XyeuOxPxBJfRnG6zeYCw"; //--> spreadsheet script ID
 //https://script.google.com/macros/s/AKfycbyHyNrqt44cHPsrncU5doKCupRV-ALXKIqQ9MaikU1WEv7BoQJDDi_hjyblqBHeUf-U7A/exec
+//https://script.google.com/macros/s/AKfycbwdXRW0xf1ZTwLK0yZqFenbyv2DxCvr1PSNTjet38Hzb_N_W0XyeuOxPxBJfRnG6zeYCw/exec
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   pinMode(TRIG_PIN, OUTPUT);
   pinMode(ECHO_PIN, INPUT);
+  pinMode(pushButton, INPUT);
   pinMode(D0, OUTPUT);
   pinMode(D1, OUTPUT);
   delay(500);  
@@ -51,7 +54,9 @@ void setup() {
 }
  
 void loop() {
-  
+  int buttonState = digitalRead(pushButton);
+  if(buttonState == 0)
+  {  
   long duration, distance;
   digitalWrite(TRIG_PIN, LOW);
   delayMicroseconds(2);
@@ -75,7 +80,9 @@ void loop() {
   }
   sendData(distance); //--> Calls the sendData Subroutine
 }
- 
+else{digitalWrite(D0,LOW);
+    digitalWrite(D1,LOW);}
+}
 // Subroutine for sending data to Google Sheets
 void sendData(int distance) {
   Serial.println("==========");
@@ -124,3 +131,51 @@ void sendData(int distance) {
   Serial.println();
   //----------------------------------------
 }
+
+/*
+function doGet(e) { 
+Logger.log( JSON.stringify(e) );
+var result = 'Ok';
+if (e.parameter == 'undefined') {
+result = 'No Parameters';
+}
+else {
+var sheet_id = '1eRGdUS3ytQ27gRKq_QH8eiJaNSG3im1kBDcn1GMDgVs'; // Spreadsheet ID
+var sheet = SpreadsheetApp.openById(sheet_id).getActiveSheet();
+var newRow = sheet.getLastRow() + 1; 
+var rowData = [];
+
+var Curr_Date = new Date();
+rowData[0] = Curr_Date; // Date in column A
+var Curr_Time = Utilities.formatDate(Curr_Date,"Asia/Kolkata", 'HH:mm:ss');
+
+
+rowData[1] = Curr_Time; // Time in column B
+for (var param in e.parameter) {
+Logger.log('In for loop, param=' + param);
+var value = stripQuotes(e.parameter[param]);
+Logger.log(param + ':' + e.parameter[param]);
+switch (param) {
+case 'temperature':
+rowData[2] = value; // Temperature in column C
+result = 'Temperature Written on column C'; 
+break;
+case 'humidity':
+rowData[3] = value; // Humidity in column D
+result += ' ,Humidity Written on column D'; 
+break; 
+default:
+result = "unsupported parameter";
+}
+}
+Logger.log(JSON.stringify(rowData));
+var newRange = sheet.getRange(newRow, 1, 1, rowData.length);
+newRange.setValues([rowData]);
+}
+return ContentService.createTextOutput(result);
+}
+function stripQuotes( value ) {
+return value.replace(/^["']|['"]$/g, "");
+}
+
+*/
